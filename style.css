@@ -1,0 +1,189 @@
+/* الألوان الأساسية: أسود وفحم للبروز */
+:root {
+    --deep-black: #050505;        /* أسود خالص للخلفية الأساسية */
+    --fahm-navy: #111111;         /* رمادي فحم داكن جداً للـ Sidebar */
+    --card-fahm: #1a1a1a;         /* رمادي فحم أفتح قليلاً للبطاقات */
+    --accent-gold: #fbbf24;       /* ذهبي هادئ */
+    --accent-red: #e74c3c;        /* الأحمر للأخطار والخروج */
+    --text-main: #f1f5f9;         /* أبيض مريح */
+    --text-dim: #8b949e;          /* رمادي للنصوص الفرعية */
+    
+    /* الظلال: مفتاح الفخامة */
+    --shadow-fakhama: 0 10px 30px rgba(0, 0, 0, 0.7); 
+    --glass-bg: rgba(17, 17, 17, 0.75); 
+}
+
+body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--deep-black);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 1. شريط التنقل العلوي */
+.navbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 2rem;
+    height: 70px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--shadow-fakhama);
+    position: sticky; top: 0; z-index: 1000;
+}
+
+.navbar h2 {
+    font-size: 1.4rem; font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #ffffff, var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-links a {
+    color: var(--text-main); text-decoration: none;
+    margin-left: 25px; font-weight: 500;
+    font-size: 0.9rem; transition: 0.3s;
+    opacity: 0.7;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    opacity: 1; color: var(--accent-gold);
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+/* 2. شريط الأيقونات الجانبي (Sidebar) */
+.icon-sidebar {
+    width: 70px; 
+    height: 100vh; 
+    background: var(--fahm-navy); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: 30px 0; 
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    position: fixed;
+    left: 0; top: 0;
+    box-sizing: border-box;
+    z-index: 1100;
+}
+
+.icon-sidebar a { 
+    color: var(--text-dim); 
+    font-size: 22px; 
+    margin-bottom: 35px; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    text-decoration: none; 
+}
+
+.icon-sidebar a:hover, .icon-sidebar a.active { 
+    color: var(--accent-gold); 
+    text-shadow: 0 0 10px var(--accent-gold); 
+}
+
+/* زر الخروج في أسفل الشريط الجانبي */
+.logout-link {
+    margin-top: auto; /* دفع الزر للأسفل */
+    margin-bottom: 20px;
+    color: var(--accent-red) !important;
+}
+
+/* 3. منطقة الإحصائيات والبطاقات */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 20px;
+}
+
+.stat-card {
+    background: var(--card-fahm);
+    padding: 1.8rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: var(--shadow-fakhama);
+    transition: transform 0.3s, border-color 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent-gold);
+}
+
+.stat-card h3 {
+    font-size: 0.8rem; color: #94a3b8;
+    text-transform: uppercase; margin: 0 0 12px 0;
+    letter-spacing: 1px;
+}
+
+.stat-card p {
+    font-size: 2rem; font-weight: 700;
+    margin: 0; color: #fff;
+}
+
+/* 4. الجداول والفلاتر */
+.glass-card {
+    background: var(--card-fahm);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--shadow-fakhama);
+}
+
+table {
+    width: 100%; border-collapse: collapse;
+}
+
+th {
+    text-align: left; padding: 15px;
+    color: var(--accent-gold); font-size: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+td {
+    padding: 12px 15px; font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* 5. المدخلات والأزرار */
+input[type="date"], select, input[type="text"] {
+    background: #080808;
+    border: 1px solid #222;
+    border-radius: 12px;
+    color: white;
+    padding: 12px;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus, select:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+}
+
+button.btn-primary {
+    background: linear-gradient(135deg, var(--accent-red), #b0003d);
+    border: none; border-radius: 12px;
+    color: white; font-weight: 700;
+    padding: 15px; cursor: pointer;
+    transition: 0.3s;
+}
+
+button.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+}
+
+/* 6. حاوية الخريطة */
+.map-frame {
+    width: 100%;
+    height: 70vh;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-fakhama);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}

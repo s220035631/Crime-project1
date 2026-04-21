@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Crime Prediction System</title>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .auth-container {
+            background: #161616;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            border: 1px solid #2a2a2a;
+        }
+
+        h2 {
+            text-align: center;
+            color: #fbbf24;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        #auth-subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #fbbf24;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #fbbf24;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #d9a306;
+            transform: translateY(-2px);
+        }
+
+        a {
+            color: #fbbf24;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #status-msg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="auth-container">
+        <h2>CRIME PREDICTION</h2>
+        <p id="auth-subtitle">Secure Access Control</p>
+        
+        <div id="login-form">
+            <div class="filter-group">
+                <label>Email Address</label>
+                <input type="email" id="login-email" placeholder="officer@police.gov" required>
+            </div>
+            <div class="filter-group">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="••••••••" required>
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">Authorize Access</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+                New Personnel? <a href="#" onclick="toggleAuth('register')">Register Branch Account</a>
+            </p>
+        </div>
+
+        <div id="register-form" style="display: none;">
+            <div class="filter-group">
+                <label>Full Name & Rank</label>
+                <input type="text" id="reg-name" placeholder="Ex: Officer John Doe">
+            </div>
+            <div class="filter-group">
+                <label>Official Email</label>
+                <input type="email" id="reg-email" placeholder="name@police.gov">
+            </div>
+            <div class="filter-group">
+                <label>System Role</label>
+                <select id="reg-role">
+                    <option value="Officer">Police Officer</option>
+                    <option value="Analyst">Data Analyst</option>
+                    <option value="Admin">Administrator</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Create Password</label>
+                <input type="password" id="reg-pass" placeholder="Min. 8 characters">
+            </div>
+            <button class="btn-primary" onclick="handleRegistration()">Verify & Create Account</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+                Already have access? <a href="#" onclick="toggleAuth('login')">Back to Login</a>
+            </p>
+        </div>
+        
+        <p id="status-msg"></p>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const msg = document.getElementById('status-msg');
+
+            const res = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                msg.style.color = "#22c55e";
+                msg.innerText = `✅ Welcome ${data.name}. Access Granted.`;
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.role);
+                localStorage.setItem('name', data.name);
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+            } else {
+                msg.style.color = "#ef4444";
+                msg.innerText = '❌ Authentication Failed: ' + data.error;
+            }
+        }
+
+        async function handleRegistration() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const role = document.getElementById('reg-role').value;
+            const msg = document.getElementById('status-msg');
+
+            const res = await fetch('http://localhost:3000/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: name, email, password: pass, role })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                msg.style.color = "#22c55e";
+                msg.innerText = '✅ Account created successfully!';
+                setTimeout(() => toggleAuth('login'), 2000);
+            } else {
+                msg.style.color = "#ef4444";
+                msg.innerText = '❌ ' + data.error;
+            }
+        }
+
+        function toggleAuth(mode) {
+            const login = document.getElementById('login-form');
+            const register = document.getElementById('register-form');
+            const subtitle = document.getElementById('auth-subtitle');
+            const msg = document.getElementById('status-msg');
+            
+            msg.innerText = "";
+            if (mode === 'register') {
+                login.style.display = 'none';
+                register.style.display = 'block';
+                subtitle.innerText = "New User Registration Process";
+            } else {
+                login.style.display = 'block';
+                register.style.display = 'none';
+                subtitle.innerText = "Secure Access Control";
+            }
+        }
+    </script>
+</body>
+</html>
