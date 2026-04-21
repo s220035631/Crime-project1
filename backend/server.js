@@ -208,10 +208,14 @@ app.get('/api/latest-data', (req, res) => {
             try {
                 if (ext === '.csv') {
                     let rows = [];
+                    if (!fs.existsSync(filePath)) {
+                        return res.status(404).json({ error: 'File not found' });
+                    }
                     fs.createReadStream(filePath)
-                        .pipe(csvParser())
-                        .on('data', row => rows.push(row))
-                        .on('end', () => res.json(rows));
+                    .pipe(csvParser())
+                    .on('error', (err) => res.status(404).json({ error: 'File not found' }))
+                    .on('data', row => rows.push(row))
+                    .on('end', () => res.json(rows));
                 } else {
                     const workbook = XLSX.readFile(filePath);
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
