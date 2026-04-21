@@ -6,6 +6,9 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
+const csvParser = require('csv-parser');
+const XLSX = require('xlsx');
 
 const app = express();
 app.use(express.json());
@@ -32,6 +35,7 @@ db.connect((err) => {
     }
 });
 
+// ====== Auth ======
 app.post('/api/register', async (req, res) => {
     const { username, email, password, role } = req.body;
     const hashed = await bcrypt.hash(password, 10);
@@ -69,8 +73,6 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ====== Users API ======
-
-// جلب كل المستخدمين (Admin فقط)
 app.get('/api/users', (req, res) => {
     db.query('SELECT user_id, username, email, role, created_at FROM USER', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -78,7 +80,6 @@ app.get('/api/users', (req, res) => {
     });
 });
 
-// تعديل مستخدم
 app.put('/api/users/:id', (req, res) => {
     const { username, email, role } = req.body;
     db.query(
@@ -91,7 +92,6 @@ app.put('/api/users/:id', (req, res) => {
     );
 });
 
-// حذف مستخدم
 app.delete('/api/users/:id', (req, res) => {
     db.query('DELETE FROM USER WHERE user_id=?', [req.params.id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -120,7 +120,6 @@ app.get('/api/alerts', (req, res) => {
     });
 });
 
-// تحديث حالة Alert
 app.put('/api/alerts/:id', (req, res) => {
     db.query(
         'UPDATE ALERTS SET status="read" WHERE alert_id=?',
@@ -133,13 +132,6 @@ app.put('/api/alerts/:id', (req, res) => {
 });
 
 // ====== Data Upload API ======
-const multer = require('multer');
-const csvParser = require('csv-parser');
-const XLSX = require('xlsx');
-const fs = require('fs');
-const path = require('path');
-
-// إعداد مجلد الرفع
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
@@ -172,10 +164,8 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
                 .pipe(csvParser())
                 .on('data', (row) => rows.push(row))
                 .on('end', () => {
-                    db.query(
-                        'INSERT INTO UPLOADED_FILES (user_id, file_name, file_path) VALUES (?,?,?)',
-                        [userId, req.file.originalname, req.file.filename]
-                    );
+                    db.query('INSERT INTO UPLOADED_FILES (user_id, file_name, file_path) VALUES (?,?,?)',
+                        [userId, req.file.originalname, req.file.filename]);
                     db.query('INSERT INTO LOGS (user_id, action) VALUES (?, ?)', [userId, 'UPLOAD']);
                     res.json({ message: `✅ Uploaded ${rows.length} rows`, rows: rows.length });
                 });
@@ -183,10 +173,8 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
             const workbook = XLSX.readFile(filePath);
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             rows = XLSX.utils.sheet_to_json(sheet);
-            db.query(
-                'INSERT INTO UPLOADED_FILES (user_id, file_name, file_path) VALUES (?,?,?)',
-                [userId, req.file.originalname, req.file.filename]
-            );
+            db.query('INSERT INTO UPLOADED_FILES (user_id, file_name, file_path) VALUES (?,?,?)',
+                [userId, req.file.originalname, req.file.filename]);
             db.query('INSERT INTO LOGS (user_id, action) VALUES (?, ?)', [userId, 'UPLOAD']);
             res.json({ message: `✅ Uploaded ${rows.length} rows`, rows: rows.length });
         }
@@ -195,7 +183,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     }
 });
 
-// جلب الملفات المرفوعة
 app.get('/api/files', (req, res) => {
     db.query(
         `SELECT f.file_id, u.username, f.file_name, f.upload_date 
@@ -208,7 +195,6 @@ app.get('/api/files', (req, res) => {
     );
 });
 
-// API يرجع بيانات آخر ملف مرفوع
 app.get('/api/latest-data', (req, res) => {
     db.query(
         'SELECT * FROM UPLOADED_FILES ORDER BY upload_date DESC LIMIT 1',
@@ -216,10 +202,8 @@ app.get('/api/latest-data', (req, res) => {
             if (err || !results.length) {
                 return res.status(404).json({ error: 'No files uploaded yet' });
             }
-
             const filePath = path.join(__dirname, 'uploads', results[0].file_path);
             const ext = path.extname(results[0].file_name).toLowerCase();
-
             try {
                 if (ext === '.csv') {
                     let rows = [];
@@ -240,6 +224,7 @@ app.get('/api/latest-data', (req, res) => {
     );
 });
 
-app.listen(3000, () => {
-    console.log('🚀 Server running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
