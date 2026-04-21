@@ -397,7 +397,7 @@
             formData.append('user_id', userId);
 
             try {
-                const res = await fetch('http://localhost:3000/api/upload', {
+                const res = await fetch('https://crime-project1.onrender.com/api/upload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -446,7 +446,7 @@
         // ====== Load Files History ======
         async function loadFiles() {
             try {
-                const res = await fetch('http://localhost:3000/api/files', {
+                const res = await fetch('https://crime-project1.onrender.com/api/files', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -502,7 +502,7 @@
 
 async function handleLogout() {
     try {
-        await fetch('http://localhost:3000/api/logout', {
+        await fetch('https://crime-project1.onrender.com/api/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: localStorage.getItem('user_id') || 1 })

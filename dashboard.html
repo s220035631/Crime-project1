@@ -266,7 +266,7 @@ document.getElementById('user-role-display').innerText = role || 'Unknown';
         async function loadData() {
             try {
         // أولاً: نجرب نجيب البيانات من آخر ملف مرفوع
-                const res = await fetch('http://localhost:3000/api/latest-data');
+                const res = await fetch('https://crime-project1.onrender.com/api/latest-data');
         
                 if (res.ok) {
                     const rows = await res.json();
@@ -383,7 +383,7 @@ document.getElementById('user-role-display').innerText = role || 'Unknown';
 
 async function handleLogout() {
     try {
-        await fetch('http://localhost:3000/api/logout', {
+        await fetch('https://crime-project1.onrender.com/api/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: localStorage.getItem('user_id') || 1 })

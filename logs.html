@@ -403,10 +403,10 @@
             try {
                 // محاولة جلب البيانات من السيرفر
                 const [logsRes, alertsRes] = await Promise.all([
-                    fetch('http://localhost:3000/api/logs', {
+                    fetch('https://crime-project1.onrender.com/api/logs', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('http://localhost:3000/api/alerts', {
+                    fetch('https://crime-project1.onrender.com/api/alerts', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
                 ]);
@@ -561,7 +561,7 @@
         // ====== Logout ======
 async function handleLogout() {
     try {
-        await fetch('http://localhost:3000/api/logout', {
+        await fetch('https://crime-project1.onrender.com/api/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: localStorage.getItem('user_id') || 1 })

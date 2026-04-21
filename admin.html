@@ -342,7 +342,7 @@
         // ====== Load Users ======
         async function loadUsers() {
             try {
-                const res = await fetch('http://localhost:3000/api/users', {
+                const res = await fetch('https://crime-project1.onrender.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) usersData = await res.json();
@@ -465,7 +465,7 @@
             if (editId) {
                 // تعديل مستخدم
                 try {
-                    const res = await fetch(`http://localhost:3000/api/users/${editId}`, {
+                    const res = await fetch(`https://crime-project1.onrender.com/api/users/${editId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({ username: name, email, role })
@@ -486,7 +486,7 @@
                     return;
                 }
                 try {
-                    const res = await fetch('http://localhost:3000/api/register', {
+                    const res = await fetch('https://crime-project1.onrender.com/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                         body: JSON.stringify({ username: name, email, password, role })
@@ -514,7 +514,7 @@
         async function deleteUser(id) {
             if (!confirm('Are you sure you want to delete this user?')) return;
             try {
-                await fetch(`http://localhost:3000/api/users/${id}`, {
+                await fetch(`https://crime-project1.onrender.com/api/users/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -526,7 +526,7 @@
 
 async function handleLogout() {
     try {
-        await fetch('http://localhost:3000/api/logout', {
+        await fetch('https://crime-project1.onrender.com/api/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: localStorage.getItem('user_id') || 1 })
