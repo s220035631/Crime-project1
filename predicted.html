@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Intelligence - Predicted Data</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --card-bg: rgba(22, 27, 34, 0.8);
+            --accent: #fbbf24;
+            --neon-red: #ef4444;
+            --neon-green: #2ecc71;
+            --neon-blue: #3b82f6;
+            --neon-purple: #a855f7;
+            --text-main: #ffffff;
+            --text-dim: #8b949e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% 50%, #1a1f29 0%, #0b0e14 100%);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100%; width: 100%;
+        }
+
+        .main-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .icon-sidebar {
+            width: 70px; background: rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 0; border-right: 1px solid #30363d; flex-shrink: 0;
+        }
+        .icon-sidebar a {
+            color: var(--text-dim); font-size: 22px;
+            margin-bottom: 35px; cursor: pointer; transition: 0.3s; text-decoration: none;
+        }
+        .icon-sidebar a.active,
+        .icon-sidebar a:hover { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+        .icon-sidebar a.logout { margin-top: auto; margin-bottom: 20px; color: var(--neon-red) !important; }
+
+        /* Left Panel */
+        .sidebar {
+            width: 320px; background: var(--card-bg); padding: 20px;
+            border-right: 1px solid #30363d; display: flex; flex-direction: column;
+            flex-shrink: 0; backdrop-filter: blur(10px); overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+
+        .sidebar-header {
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-weight: 300; font-size: 1.1rem;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .sidebar-header h2 span { color: var(--neon-purple); font-weight: 800; }
+        .sidebar-header p {
+            font-size: 11px; color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        /* AI Badge */
+        .ai-badge {
+            background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(59,130,246,0.2));
+            border: 1px solid rgba(168,85,247,0.4);
+            border-radius: 10px; padding: 12px;
+            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .ai-badge i { color: var(--neon-purple); font-size: 20px; }
+        .ai-badge span { font-size: 11px; color: var(--text-dim); }
+        .ai-badge b { color: var(--neon-purple); }
+
+        /* Stat Boxes */
+        .stat-box {
+            background: rgba(13, 17, 23, 0.6); padding: 12px; border-radius: 10px;
+            border: 1px solid #30363d; margin-bottom: 12px;
+            border-left: 4px solid var(--neon-purple);
+        }
+        .stat-box h3 { font-size: 9px; color: var(--neon-purple); margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-box p { font-size: 22px; font-weight: bold; margin: 5px 0 0; }
+
+        /* Filters */
+        .filter-group { margin-top: 12px; }
+        .filter-group label { display: block; margin-bottom: 6px; font-size: 10px; color: var(--text-dim); font-weight: bold; text-transform: uppercase; }
+
+        select, input {
+            width: 100%; padding: 10px; background: #0d1117;
+            border: 1px solid #30363d; color: #fff; border-radius: 8px;
+            font-size: 12px; outline: none; box-sizing: border-box;
+        }
+
+        .btn-update {
+            background: var(--neon-purple); color: #fff; border: none; padding: 12px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;
+            font-size: 12px; margin-top: 15px; transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-update:hover { filter: brightness(1.2); }
+
+        /* Chart */
+        .chart-container {
+            margin-top: 20px; background: rgba(13, 17, 23, 0.4);
+            padding: 10px; border-radius: 8px; border: 1px solid #30363d; height: 160px;
+        }
+
+        /* Map */
+        #map { flex-grow: 1; background: #0b0e14; height: 100%; }
+
+        /* Popup */
+        .leaflet-popup-content-wrapper {
+            background: #0d1117 !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 5px !important;
+            border: 1px solid #30363d;
+        }
+        .leaflet-popup-tip { background: #0d1117 !important; }
+        .popup-container { min-width: 220px; padding: 5px; }
+        .popup-header-custom {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; border-bottom: 1px solid #30363d; padding-bottom: 8px;
+        }
+        .popup-title { font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .popup-badge { color: white; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+        .popup-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+        .popup-row i { color: #8b949e; width: 16px; text-align: center; }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset: 0; background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; flex-direction: column; gap: 15px;
+        }
+        .loading-overlay i { font-size: 40px; color: var(--neon-purple); animation: spin 1s linear infinite; }
+        .loading-overlay p { color: var(--text-dim); font-size: 14px; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loading">
+        <i class="fas fa-brain"></i>
+        <p>Loading Predicted Data...</p>
+    </div>
+
+    <div class="main-layout">
+        <!-- Icon Sidebar -->
+        <div class="icon-sidebar">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i></a>
+            <a href="predicted.html" class="active"><i class="fas fa-brain"></i></a>
+            <a href="reports.html"><i class="fas fa-chart-line"></i></a>
+            <a href="logs.html"><i class="fas fa-shield-alt"></i></a>
+            <a href="admin.html"><i class="fas fa-users-cog"></i></a>
+            <a href="upload.html"><i class="fas fa-upload"></i></a>
+            <a class="logout" onclick="handleLogout()"><i class="fas fa-power-off"></i></a>
+        </div>
+
+        <!-- Left Panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>PREDICTED <span>DATA</span></h2>
+                <p>AI-generated crime predictions</p>
+            </div>
+
+            <div class="ai-badge">
+                <i class="fas fa-robot"></i>
+                <div>
+                    <b>AI Model Active</b><br>
+                    <span>100 predicted incidents</span>
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <h3>Total Predictions</h3><p id="total-count">0</p>
+            </div>
+            <div class="stat-box" style="border-left-color: var(--neon-red);">
+                <h3>High Risk</h3><p id="high-count">0</p>
+            </div>
+            <div class="stat-box" style="border-left-color: var(--accent);">
+                <h3>Medium Risk</h3><p id="med-count">0</p>
+            </div>
+            <div class="stat-box" style="border-left-color: var(--neon-green);">
+                <h3>Low Risk</h3><p id="low-count">0</p>
+            </div>
+
+            <div class="filter-group">
+                <label>Crime Category</label>
+                <select id="crime-type">
+                    <option value="all">All Predictions</option>
+                    <option value="drugs">Drugs</option>
+                    <option value="weapon">Weapon</option>
+                    <option value="stolen">Theft</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Risk Level</label>
+                <select id="risk-filter">
+                    <option value="all">All Levels</option>
+                    <option value="high">High Risk (4+)</option>
+                    <option value="med">Medium Risk (2.5-4)</option>
+                    <option value="low">Low Risk (below 2.5)</option>
+                </select>
+            </div>
+
+            <button class="btn-update" onclick="applyFilters()">
+                <i class="fas fa-brain"></i> Apply Filters
+            </button>
+
+            <div class="chart-container">
+                <canvas id="predChart"></canvas>
+            </div>
+        </aside>
+
+        <!-- Map -->
+        <main id="map"></main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Auth Check
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'index.html';
+
+        // Map Setup
+        var map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([51.505, -0.12], 11);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+        let markersLayer = L.layerGroup().addTo(map);
+        let allData = [], myChart = null;
+
+        // Load CSV
+        async function loadData() {
+            try {
+                const res = await fetch('predicted_100_records.csv');
+                const text = await res.text();
+                const rows = parseCSV(text);
+                allData = rows;
+                initChart();
+                applyFilters();
+            } catch(e) {
+                console.error('Error loading CSV:', e);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                setTimeout(() => map.invalidateSize(), 200);
+            }
+        }
+
+        // Parse CSV
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            return lines.slice(1).map(line => {
+                const vals = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                const obj = {};
+                headers.forEach((h, i) => obj[h] = vals[i]);
+                return obj;
+            }).filter(r => r.latitude && r.longitude);
+        }
+
+        // Init Chart
+        function initChart() {
+            const ctx = document.getElementById('predChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#ef4444', '#fbbf24', '#2ecc71'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { color: '#8b949e', font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Apply Filters
+        function applyFilters() {
+            markersLayer.clearLayers();
+            const type = document.getElementById('crime-type').value;
+            const riskFilter = document.getElementById('risk-filter').value;
+
+            let counts = { total: 0, high: 0, med: 0, low: 0 };
+
+            allData.forEach(row => {
+                const cType = (row.object_of_search || '').toLowerCase();
+                const risk = parseFloat(row.risk_level) || 0;
+                const lat = parseFloat(row.latitude);
+                const lng = parseFloat(row.longitude);
+
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                let matchType = type === 'all' || cType.includes(type);
+                let matchRisk = riskFilter === 'all' ||
+                    (riskFilter === 'high' && risk >= 4) ||
+                    (riskFilter === 'med' && risk >= 2.5 && risk < 4) ||
+                    (riskFilter === 'low' && risk < 2.5);
+
+                if (!matchType || !matchRisk) return;
+
+                counts.total++;
+                let pointColor, statusText;
+                if (risk >= 4) { pointColor = '#ef4444'; statusText = 'HIGH'; counts.high++; }
+                else if (risk >= 2.5) { pointColor = '#fbbf24'; statusText = 'MEDIUM'; counts.med++; }
+                else { pointColor = '#2ecc71'; statusText = 'LOW'; counts.low++; }
+
+                const datetime = row.datetime || '';
+                const datePart = datetime.split('T')[0] || datetime.split(' ')[0] || datetime;
+                const timePart = datetime.includes('T') ? datetime.split('T')[1]?.substring(0, 5) :
+                                 datetime.split(' ')[1]?.substring(0, 5) || '';
+
+                L.circleMarker([lat, lng], {
+                    radius: 7,
+                    fillColor: pointColor,
+                    color: "#fff",
+                    weight: 1,
+                    fillOpacity: 0.85
+                }).addTo(markersLayer).bindPopup(`
+                    <div class="popup-container">
+                        <div class="popup-header-custom">
+                            <span class="popup-title" style="color:${pointColor}">Prediction</span>
+                            <span class="popup-badge" style="background:${pointColor}">${statusText}</span>
+                        </div>
+                        <div class="popup-row"><i class="fas fa-fingerprint"></i><span><b>Type:</b> ${row.object_of_search || 'Unknown'}</span></div>
+                        <div class="popup-row"><i class="fas fa-exclamation-triangle"></i><span><b>Risk:</b> ${risk}</span></div>
+                        <div class="popup-row"><i class="fas fa-calendar-alt"></i><span><b>Date:</b> ${datePart}</span></div>
+                        <div class="popup-row"><i class="fas fa-clock"></i><span><b>Time:</b> ${timePart}</span></div>
+                        <div class="popup-row"><i class="fas fa-map-marker-alt"></i><span><b>Location:</b> ${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div>
+                    </div>
+                `);
+            });
+
+            document.getElementById('total-count').innerText = counts.total.toLocaleString();
+            document.getElementById('high-count').innerText = counts.high.toLocaleString();
+            document.getElementById('med-count').innerText = counts.med.toLocaleString();
+            document.getElementById('low-count').innerText = counts.low.toLocaleString();
+
+            if (myChart) {
+                myChart.data.datasets[0].data = [counts.high, counts.med, counts.low];
+                myChart.update();
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('name');
+            window.location.href = 'index.html';
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
