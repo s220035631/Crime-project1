@@ -19,19 +19,23 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASS || '',
-    database: process.env.DB_NAME || 'crime_system'
+    database: process.env.DB_NAME || 'crime_system',
+    waitForConnections: true,
+    connectionLimit: 3,
+    queueLimit: 0
 });
 
-db.connect((err) => {
+db.getConnection((err, connection) => {
     if (err) {
         console.log('❌ Database connection failed:', err.message);
     } else {
         console.log('✅ Connected to MySQL');
+        connection.release();
     }
 });
 
