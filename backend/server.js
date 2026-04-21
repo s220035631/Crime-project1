@@ -196,6 +196,7 @@ app.get('/api/files', (req, res) => {
 });
 
 app.get('/api/latest-data', (req, res) => {
+    return res.status(404).json({ error: 'No files uploaded yet' });
     db.query(
         'SELECT * FROM UPLOADED_FILES ORDER BY upload_date DESC LIMIT 1',
         (err, results) => {
